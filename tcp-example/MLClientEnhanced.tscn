@@ -1,0 +1,151 @@
+[gd_scene load_steps=2 format=3 uid="uid://o7bcycrupn6e"]
+
+[ext_resource type="Script" path="res://ml_client_enhanced.gd" id="1_enhanced"]
+
+[node name="Node2D" type="Node2D"]
+script = ExtResource("1_enhanced")
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 98.0
+offset_top = 4.0
+offset_right = 1019.0
+offset_bottom = 634.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="UI/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "🤖 ML Ethnic Detection Client"
+horizontal_alignment = 1
+
+[node name="Spacer1" type="Control" parent="UI/VBoxContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="ConnectButton" type="Button" parent="UI/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "🔌 Hubungkan ke Server"
+
+[node name="DisconnectButton" type="Button" parent="UI/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "🔌 Putuskan Koneksi"
+
+[node name="Spacer2" type="Control" parent="UI/VBoxContainer"]
+custom_minimum_size = Vector2(0, 15)
+layout_mode = 2
+
+[node name="HSeparator" type="HSeparator" parent="UI/VBoxContainer"]
+layout_mode = 2
+
+[node name="FeaturesLabel" type="Label" parent="UI/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "📸 Fitur Deteksi Etnis"
+horizontal_alignment = 1
+
+[node name="UploadButton" type="Button" parent="UI/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "📁 Upload Gambar"
+
+[node name="WebcamButton" type="Button" parent="UI/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "📹 Aktifkan Webcam"
+
+[node name="TestButton" type="Button" parent="UI/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "🧪 Test Koneksi"
+
+[node name="Spacer3" type="Control" parent="UI/VBoxContainer"]
+custom_minimum_size = Vector2(0, 15)
+layout_mode = 2
+
+[node name="HSeparator2" type="HSeparator" parent="UI/VBoxContainer"]
+layout_mode = 2
+
+[node name="ConnectionTestLabel" type="Label" parent="UI/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "🔗 Status Koneksi"
+horizontal_alignment = 1
+
+[node name="ConnectionStatusLabel" type="Label" parent="UI/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Belum melakukan test koneksi"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Spacer3b" type="Control" parent="UI/VBoxContainer"]
+custom_minimum_size = Vector2(0, 15)
+layout_mode = 2
+
+[node name="HSeparator3" type="HSeparator" parent="UI/VBoxContainer"]
+layout_mode = 2
+
+[node name="ResultsLabel" type="Label" parent="UI/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "📊 Hasil Deteksi"
+horizontal_alignment = 1
+
+[node name="PreviewRect" type="TextureRect" parent="UI/VBoxContainer"]
+custom_minimum_size = Vector2(200, 150)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ResultLabel" type="Label" parent="UI/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Hasil deteksi akan muncul di sini..."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="ConfidenceLabel" type="Label" parent="UI/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Confidence: -"
+horizontal_alignment = 1
+
+[node name="Spacer4" type="Control" parent="UI/VBoxContainer"]
+custom_minimum_size = Vector2(0, 15)
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="UI/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Status: Tidak terhubung"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Spacer5" type="Control" parent="UI/VBoxContainer"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="InfoLabel" type="Label" parent="UI/VBoxContainer"]
+modulate = Color(0.7, 0.7, 0.7, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "💡 Tip: Hubungkan ke server dulu, lalu upload gambar atau aktifkan webcam"
+horizontal_alignment = 1
+autowrap_mode = 2

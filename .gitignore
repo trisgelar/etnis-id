@@ -1,0 +1,131 @@
+# ===================================
+# Python Virtual Environment
+# ===================================
+.venv/
+venv/
+env/
+ENV/
+.env
+
+# ===================================
+# Python Cache & Compiled Files
+# ===================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ===================================
+# IDE & Editor Files
+# ===================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ===================================
+# Godot Engine Files
+# ===================================
+# Godot 4+ specific
+.godot/
+.import/
+export.cfg
+export_presets.cfg
+
+# Godot-specific
+*.tmp
+.mono/
+data_*/
+mono_crash.*.json
+
+# ===================================
+# Machine Learning & Data
+# ===================================
+# Large dataset files (uncomment if you have large datasets)
+# dataset/
+# *.zip
+# *.tar.gz
+
+# Model checkpoints & logs
+*.log
+*.logs
+logs/
+checkpoints/
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# ===================================
+# System Files
+# ===================================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ===================================
+# Testing & Coverage
+# ===================================
+.coverage
+.pytest_cache/
+htmlcov/
+.tox/
+.coverage.*
+coverage.xml
+
+# ===================================
+# Documentation
+# ===================================
+docs/_build/
+.readthedocs.yml
+
+# ===================================
+# Project Specific
+# ===================================
+# Temporary files
+*.tmp
+temp/
+temporary/
+
+# Configuration files with sensitive data
+config.ini
+secrets.json
+.secrets
+
+# Large files that shouldn't be in git
+*.mp4
+*.avi
+*.mov
+*.mkv
+large_datasets/

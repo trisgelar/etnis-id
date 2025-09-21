@@ -1,0 +1,60 @@
+[gd_scene load_steps=2 format=3 uid="uid://fp74in7gpnkl"]
+
+[ext_resource type="Script" path="res://client.gd" id="1_client"]
+
+[node name="Node2D" type="Node2D"]
+script = ExtResource("1_client")
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1152.0
+offset_bottom = -648.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 888.0
+offset_top = 518.0
+offset_right = 1467.0
+offset_bottom = 861.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="UI/VBoxContainer"]
+layout_mode = 2
+text = "TCP Client Godot"
+horizontal_alignment = 1
+
+[node name="Spacer1" type="Control" parent="UI/VBoxContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="SendButton" type="Button" parent="UI/VBoxContainer"]
+layout_mode = 2
+text = "Kirim Pesan"
+
+[node name="Spacer2" type="Control" parent="UI/VBoxContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="UI/VBoxContainer"]
+layout_mode = 2
+text = "Status: Siap"
+horizontal_alignment = 1
+
+[node name="Spacer3" type="Control" parent="UI/VBoxContainer"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="ResponseLabel" type="Label" parent="UI/VBoxContainer"]
+layout_mode = 2
+text = "Balasan dari server akan muncul di sini..."
+horizontal_alignment = 1
+autowrap_mode = 2

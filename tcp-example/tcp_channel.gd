@@ -47,4 +47,3 @@ func close():
 	if client:
 		client.close()
 	server.stop()
-

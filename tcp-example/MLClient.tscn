@@ -1,0 +1,85 @@
+[gd_scene load_steps=2 format=3 uid="uid://1n5k1mi0mlj4"]
+
+[ext_resource type="Script" path="res://ml_client.gd" id="1_ml_client"]
+
+[node name="Node2D" type="Node2D"]
+script = ExtResource("1_ml_client")
+
+[node name="UI" type="Control" parent="."]
+layout_direction = 1
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 236.0
+offset_top = 111.0
+offset_right = 923.0
+offset_bottom = 503.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Title" type="Label" parent="UI/VBoxContainer"]
+layout_mode = 2
+text = "🤖 ML Ethnic Detection Client"
+horizontal_alignment = 1
+
+[node name="Spacer1" type="Control" parent="UI/VBoxContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="ConnectButton" type="Button" parent="UI/VBoxContainer"]
+layout_mode = 2
+text = "🔌 Hubungkan ke Server"
+
+[node name="DisconnectButton" type="Button" parent="UI/VBoxContainer"]
+layout_mode = 2
+text = "🔌 Putuskan Koneksi"
+
+[node name="Spacer2" type="Control" parent="UI/VBoxContainer"]
+custom_minimum_size = Vector2(0, 15)
+layout_mode = 2
+
+[node name="SendButton" type="Button" parent="UI/VBoxContainer"]
+layout_mode = 2
+text = "📸 Kirim Data (Test)"
+
+[node name="Spacer3" type="Control" parent="UI/VBoxContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="UI/VBoxContainer"]
+layout_mode = 2
+text = "Status: Tidak terhubung"
+horizontal_alignment = 1
+
+[node name="Spacer4" type="Control" parent="UI/VBoxContainer"]
+custom_minimum_size = Vector2(0, 15)
+layout_mode = 2
+
+[node name="ResponseLabel" type="Label" parent="UI/VBoxContainer"]
+layout_mode = 2
+text = "Hasil deteksi akan muncul di sini..."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Spacer5" type="Control" parent="UI/VBoxContainer"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="InfoLabel" type="Label" parent="UI/VBoxContainer"]
+modulate = Color(0.7, 0.7, 0.7, 1)
+layout_mode = 2
+text = "💡 Tip: Hubungkan ke server dulu sebelum mengirim data"
+horizontal_alignment = 1
+autowrap_mode = 2
