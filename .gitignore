@@ -61,9 +61,9 @@ mono_crash.*.json
 # Machine Learning & Data
 # ===================================
 # Large dataset files (uncomment if you have large datasets)
-# dataset/
-# *.zip
-# *.tar.gz
+dataset/
+*.zip
+*.tar.gz
 
 # Model checkpoints & logs
 *.log
@@ -129,3 +129,4 @@ secrets.json
 *.mov
 *.mkv
 large_datasets/
+examples/

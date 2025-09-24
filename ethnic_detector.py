@@ -7,15 +7,27 @@ from skimage.measure import shannon_entropy
 import base64
 from io import BytesIO
 from PIL import Image
+from ml_training.core.config import get_model_config, get_dataset_config, get_feature_config
 
 class EthnicDetector:
-    def __init__(self, model_path="model_ml/pickle_model.pkl"):
+    def __init__(self, model_path=None):
         """
         Inisialisasi detector etnis
         """
-        self.model_path = model_path
-        self.model = None
-        self.label_map = {0: "Bugis", 1: "Sunda", 2: "Malay", 3: "Jawa", 4: "Banjar"}
+        # Get configuration
+        model_config = get_model_config()
+        dataset_config = get_dataset_config()
+        feature_config = get_feature_config()
+        
+        # Use configuration values
+        self.model_path = model_path or model_config.model_path
+        
+        # Create label map from configuration ethnicities
+        self.ethnicities = dataset_config.ethnicities
+        self.label_map = {i: ethnicity for i, ethnicity in enumerate(self.ethnicities)}
+        
+        # Store feature configuration for feature extraction
+        self.feature_config = feature_config
         
         # Load model
         self.load_model()
@@ -60,12 +72,12 @@ class EthnicDetector:
         Ekstraksi fitur GLCM berdasarkan script training yang benar
         """
         try:
-            # Parameter GLCM sesuai training script
-            distances = [1]
-            angles = [0, np.pi/4, np.pi/2, 3*np.pi/4]  # 0, 45, 90, 135 derajat
-            levels = 256
-            symmetric = True
-            normed = True
+            # Get GLCM parameters from configuration
+            distances = self.feature_config.glc_distances
+            angles = [np.radians(angle) for angle in self.feature_config.glc_angles]  # Convert degrees to radians
+            levels = self.feature_config.glc_levels
+            symmetric = self.feature_config.glc_symmetric
+            normed = self.feature_config.glc_normed
             
             # Resize image jika terlalu besar
             if gray_image.shape[0] > 256 or gray_image.shape[1] > 256:
@@ -112,9 +124,13 @@ class EthnicDetector:
             # Split channels H, S, V
             h, s, v = cv2.split(hsv_image)
             
-            # Hitung histogram PERSIS seperti training script
-            hist1 = cv2.calcHist([hsv_image], [1], None, [16], [0, 256])  # Channel 1 (S)
-            hist2 = cv2.calcHist([hsv_image], [2], None, [16], [0, 256])  # Channel 2 (V)
+            # Get histogram parameters from configuration
+            bins = self.feature_config.color_bins
+            channels = self.feature_config.color_channels
+            
+            # Hitung histogram using configuration
+            hist1 = cv2.calcHist([hsv_image], [channels[0]], None, [bins], [0, 256])  # First configured channel
+            hist2 = cv2.calcHist([hsv_image], [channels[1]], None, [bins], [0, 256])  # Second configured channel
             
             # Gabungkan histogram S dan V TANPA normalisasi (sesuai training)
             fitur = np.concatenate((hist1, hist2))

@@ -4,11 +4,15 @@ import threading
 import time
 import base64
 from ethnic_detector import EthnicDetector
+from ml_training.core.config import get_server_config
 
 class MLTCPServer:
-    def __init__(self, host="127.0.0.1", port=7001):
-        self.host = host
-        self.port = port
+    def __init__(self, host=None, port=None):
+        # Get server configuration
+        server_config = get_server_config()
+        
+        self.host = host or server_config.host
+        self.port = port or server_config.port
         self.server_socket = None
         self.running = False
         self.active_clients = {}  # Track active clients
