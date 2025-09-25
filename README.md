@@ -14,10 +14,10 @@ Proyek ini mengintegrasikan:
 
 ```
 [Godot Client] ←→ TCP Socket ←→ [Python ML Server] ←→ [Random Forest Model]
-                                       ↓
-                               [Feature Extraction]
-                               - GLCM (Texture)
-                               - Color Histogram
+                                      ↓
+                              [Feature Extraction]
+                              - GLCM (Texture)
+                              - Color Histogram
 ```
 
 ## 🔧 Tech Stack
@@ -36,111 +36,110 @@ Proyek ini mengintegrasikan:
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.8+
+- Python 3.10+
 - Godot Engine 4.x
 - Git
 
-### Installation
+### Installation (Windows)
 
-1. **Clone repository**
-```bash
-git clone https://github.com/yourusername/indonesian-ethnicity-detection.git
-cd indonesian-ethnicity-detection
+```
+# Clone
+git clone <repo-url>
+cd etnis-id
+
+# Activate existing venv
+cmd /c "env\Scripts\activate.bat && pip install -r requirements.txt"
 ```
 
-2. **Setup Python Environment**
-```bash
-# Create virtual environment
-python -m venv .venv
-
-# Activate virtual environment
-# Windows:
-.venv\Scripts\activate
-# Linux/Mac:
-source .venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
+### Start ML Server
+```
+cmd /c "env\Scripts\activate.bat && python ml_server.py"
 ```
 
-3. **Start ML Server**
-```bash
-python ml_server.py
+### Godot Client
+- Buka `tcp-example/project.godot` di Godot, jalankan scene klien ML.
+
+## 📁 Project Structure (simplified)
+
+```
+etnis-id/
+├── ethnic_detector.py
+├── ml_server.py
+├── ml_training/
+│   └── core/ (config, data_loader, feature_extractors, training_pipeline, utils, ...)
+├── model_ml/
+│   └── pickle_model.pkl
+├── tests/
+│   ├── unit/
+│   ├── cv/
+│   ├── config/
+│   ├── solid/
+│   ├── visualization/
+│   ├── smoke/
+│   ├── helpers/
+│   └── legacy/
+├── dataset/
+│   └── dataset_periorbital/...
+├── requirements.txt
+└── README.md
 ```
 
-4. **Open Godot Project**
-```bash
-# Open tcp-example/project.godot with Godot Engine
+## 🧪 Testing (pytest)
+
+All commands below assume Windows with the provided virtual environment.
+
+- Run all tests
+```
+cmd /c "env\Scripts\activate.bat && python -m pytest -q"
 ```
 
-### Usage
+- Run by suite
+```
+# Unit tests (fast)
+cmd /c "env\Scripts\activate.bat && pytest -q tests/unit"
 
-1. **Start ML Server**: Run `python ml_server.py`
-2. **Open Godot Client**: Launch the Godot project
-3. **Connect**: Client akan otomatis connect ke server
-4. **Upload Image**: Pilih gambar untuk deteksi etnis
-5. **View Results**: Lihat hasil prediksi dan confidence score
+# Cross-validation pipeline
+cmd /c "env\Scripts\activate.bat && pytest -q tests/cv"
+
+# Visualization tests
+cmd /c "env\Scripts\activate.bat && pytest -q tests/visualization"
+
+# Config system
+cmd /c "env\Scripts\activate.bat && pytest -q tests/config"
+
+# SOLID training system
+cmd /c "env\Scripts\activate.bat && pytest -q tests/solid"
+
+# Smoke checks (env/dataset presence)
+cmd /c "env\Scripts\activate.bat && pytest -q tests/smoke"
+```
+
+Lihat panduan lengkap di `tests/README.md` dan `tests/TESTING_GUIDE.md`.
 
 ## 📊 Supported Ethnicities
-
 - 🏮 **Jawa** (Javanese)
-- 🌸 **Sunda** (Sundanese) 
+- 🌸 **Sunda** (Sundanese)
 - 🌊 **Malay** (Malay)
 - ⛵ **Bugis** (Buginese)
 - 🏛️ **Banjar** (Banjarese)
 
 ## 🔬 Model Performance
-
-- **Algorithm**: Random Forest Classifier
 - **Features**: 52 total (20 GLCM + 32 Color Histogram)
-- **Training Data**: Indonesian ethnic faces dataset
-- **Accuracy**: ~85% (varies by ethnicity)
+- **Accuracy**: depends on dataset split and CV; see tests/cv
 
-## 📁 Project Structure
+## Idea of improvement
 
-```
-proyek_etnis/
-├── 🤖 ethnic_detector.py      # Core ML engine
-├── 🌐 ml_server.py           # TCP server
-├── 📊 script_training.py     # Model training script
-├── 🎮 tcp-example/           # Godot client project
-├── 🧠 model_ml/             # Trained ML models
-│   └── pickle_model.pkl
-├── 🧪 tests/                # Testing scripts
-├── 📋 requirements.txt      # Python dependencies
-└── 📖 README.md            # This file
-```
+Advances in Facial Feature Analysis for Demographic Estimation
 
-## 🧪 Testing
+To perform this classification, the system relies on the extraction of discriminative features from the facial region. Rather than processing raw pixel data directly, which can be computationally expensive and sensitive to irrelevant variations, the system employs a set of well-established feature descriptors designed to capture salient visual information. This research utilizes a combination of three powerful and complementary feature descriptors:
+●	Gray Level Co-occurrence Matrix (GLCM): This is a classic texture analysis method that captures second-order statistical information by examining the spatial relationships between pixels at different orientations and distances. GLCM provides a feature vector describing properties such as contrast, correlation, energy, and homogeneity, which are effective for characterizing surface textures.3
+●	Local Binary Patterns (LBP): LBP is a highly efficient and robust descriptor that provides a fine-grained analysis of texture. It operates by comparing the intensity of each pixel with its surrounding neighbors, encoding the result as a binary number. The histogram of these binary patterns across a region forms a powerful texture signature. Its computational efficiency makes it particularly well-suited for real-time applications.
+●	Histogram of Oriented Gradients (HOG): Unlike GLCM and LBP, which primarily describe texture, HOG is designed to capture the shape and structure of objects. It achieves this by computing a histogram of gradient orientations within localized portions of an image. HOG is robust to changes in illumination and has proven highly effective in various object detection and recognition tasks, including facial analysis.3
 
-Run comprehensive tests:
-```bash
-# Test all components
-python integration_test.py
-
-# Test individual components
-python test_dependencies.py
-python test_ml_model.py
-python tcp_test_client.py
-```
 
 ## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
-
-## 🙏 Acknowledgments
-
-- Dataset courtesy of Indonesian ethnic faces research Telkom University
-- Built with scikit-learn and Godot Engine
-- Inspired by computer vision research in ethnic recognition
+1. Fork → feature branch → PR
+2. Tambahkan/ubah tests sesuai perubahan fitur
 
 ## 📞 Contact
-
-- **Author**: - Muhammad Gianluigi 
-              - Muhammad Rafli Fadhilah
-              - Daffa Muzhaffar
----
+- Tim: Muhammad Gianluigi, Muhammad Rafli Fadhilah, Daffa Muzhaffar

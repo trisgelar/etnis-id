@@ -21,7 +21,8 @@ class Config:
             env_file: Path to .env file
         """
         # Load environment variables from .env file
-        load_dotenv(env_file)
+        # override=True ensures temporary/test env files take precedence
+        load_dotenv(env_file, override=True)
         
         # Initialize all configuration sections
         self._load_all_configs()
@@ -259,7 +260,17 @@ class FeatureExtractionConfig(BaseConfig):
         """Initialize feature extraction configuration"""
         # GLCM Configuration
         self.glc_distances = self._get_env_var('GLCM_DISTANCES', [1], list)
+        # Coerce to ints if provided as strings
+        try:
+            self.glc_distances = [int(x) for x in self.glc_distances]
+        except Exception:
+            pass
+
         self.glc_angles = self._get_env_var('GLCM_ANGLES', [0, 45, 90, 135], list)
+        try:
+            self.glc_angles = [int(x) for x in self.glc_angles]
+        except Exception:
+            pass
         self.glc_levels = self._get_env_var('GLCM_LEVELS', 256, int)
         self.glc_symmetric = self._get_env_var('GLCM_SYMMETRIC', True, bool)
         self.glc_normed = self._get_env_var('GLCM_NORMED', True, bool)
@@ -267,16 +278,57 @@ class FeatureExtractionConfig(BaseConfig):
         # Color Histogram Configuration
         self.color_bins = self._get_env_var('COLOR_BINS', 16, int)
         self.color_channels = self._get_env_var('COLOR_CHANNELS', [1, 2], list)  # S and V for HSV
+        try:
+            self.color_channels = [int(x) for x in self.color_channels]
+        except Exception:
+            pass
         self.color_space = self._get_env_var('COLOR_SPACE', 'HSV', str)
         
         # Image Preprocessing
         self.image_size = self._get_env_var('IMAGE_SIZE', (256, 256), tuple)
+        try:
+            self.image_size = tuple(int(x) for x in self.image_size)
+        except Exception:
+            pass
         self.resize_method = self._get_env_var('RESIZE_METHOD', 'cv2', str)
         self.normalize = self._get_env_var('NORMALIZE_IMAGES', True, bool)
         
         # Feature Scaling
         self.scale_features = self._get_env_var('SCALE_FEATURES', True, bool)
         self.scaler_type = self._get_env_var('SCALER_TYPE', 'StandardScaler', str)
+        
+        # LBP parameters
+        self.lbp_p = self._get_env_var('LBP_P', [8, 16, 24], list)
+        self.lbp_r = self._get_env_var('LBP_R', [1.0, 2.0, 3.0], list)
+        self.lbp_method = self._get_env_var('LBP_METHOD', 'uniform', str)
+        self.lbp_bins = self._get_env_var('LBP_BINS', 10, int)
+        
+        # Paper LBP parameters
+        self.paper_lbp_radii = self._get_env_var('PAPER_LBP_RADII', [1, 2, 3], list)
+        self.paper_lbp_points = self._get_env_var('PAPER_LBP_POINTS', [8, 16, 24], list)
+        self.paper_lbp_method = self._get_env_var('PAPER_LBP_METHOD', 'uniform', str)
+        self.paper_lbp_grid_size = self._get_env_var('PAPER_LBP_GRID_SIZE', [4, 4], list)
+        
+        # HOG parameters
+        self.hog_orientations = self._get_env_var('HOG_ORIENTATIONS', 9, int)
+        self.hog_pixels_per_cell = self._get_env_var('HOG_PIXELS_PER_CELL', [8, 8], list)
+        self.hog_cells_per_block = self._get_env_var('HOG_CELLS_PER_BLOCK', [2, 2], list)
+        
+        # LBP Variants parameters
+        # MB-LBP
+        self.mb_lbp_block_size = self._get_env_var('MB_LBP_BLOCK_SIZE', [2, 3], list)
+        
+        # MQLBP
+        self.mqlbp_L = self._get_env_var('MQLBP_L', 2, int)
+        self.mqlbp_thresholds = self._get_env_var('MQLBP_THRESHOLDS', [0.1, 0.2], list)
+        
+        # d-LBP
+        self.dlbp_radius1 = self._get_env_var('DLBP_RADIUS1', 1, int)
+        self.dlbp_radius2 = self._get_env_var('DLBP_RADIUS2', 3, int)
+        self.dlbp_n_points = self._get_env_var('DLBP_N_POINTS', 8, int)
+        
+        # RedDLBP
+        self.reddlbp_radius = self._get_env_var('REDDLBP_RADIUS', 2, int)
     
     def get_config(self) -> Dict[str, Any]:
         """Get feature extraction configuration"""

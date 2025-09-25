@@ -57,6 +57,14 @@ class EthnicityDataLoader(IDataLoader):
             raise FileNotFoundError(error_msg)
         
         images, labels, paths, names, folders = self._load_images_from_directory(data_path)
+
+        # Convert to numpy arrays with consistent shapes
+        try:
+            images = np.array(images)
+            labels = np.array(labels)
+        except Exception as e:
+            self.logger.error(f"Error converting loaded data to numpy arrays: {e}")
+            raise
         
         if len(images) == 0:
             error_msg = "No valid images found in dataset!"

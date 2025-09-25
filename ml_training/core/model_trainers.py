@@ -15,8 +15,10 @@ from sklearn.svm import SVC
 from sklearn.model_selection import StratifiedKFold, cross_val_score, cross_validate
 from sklearn.utils import shuffle
 from sklearn.base import BaseEstimator
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 from .interfaces import IModelTrainer, ILogger, IProgressTracker
-from .config import get_model_config, get_training_config
+from .config import get_model_config, get_training_config, get_feature_config
 
 
 class BaseModelTrainer(IModelTrainer, ABC):
@@ -78,17 +80,51 @@ class RandomForestTrainer(BaseModelTrainer):
             **kwargs  # Override with any provided kwargs
         }
         
+        # Normalize values: coerce empty strings to None and map deprecated options
+        cleaned_params = {}
+        for k, v in self.additional_params.items():
+            if isinstance(v, str) and v.strip() == '':
+                v = None
+            cleaned_params[k] = v
+
+        # scikit-learn deprecates 'auto' for max_features; map to 'sqrt'
+        if cleaned_params.get('max_features') == 'auto':
+            cleaned_params['max_features'] = 'sqrt'
+
         # Remove None values
-        self.additional_params = {k: v for k, v in self.additional_params.items() if v is not None}
+        self.additional_params = {k: v for k, v in cleaned_params.items() if v is not None}
         
         self.model_info = {
             'type': 'RandomForest',
             'algorithm': 'Random Forest Classifier',
-            'n_estimators': n_estimators,
-            'random_state': random_state,
-            'additional_params': kwargs,
+            'n_estimators': self.n_estimators,
+            'random_state': self.random_state,
+            'additional_params': self.additional_params,
             'description': 'Ensemble method using multiple decision trees'
         }
+
+        # Feature config for scaling decision
+        self.feature_config = get_feature_config()
+
+    def _build_estimator(self) -> BaseEstimator:
+        """Build the estimator, optionally with scaling in a Pipeline."""
+        rf = RandomForestClassifier(
+            n_estimators=self.n_estimators,
+            random_state=self.random_state,
+            **self.additional_params
+        )
+        use_scaler = getattr(self.feature_config, 'scale_features', True)
+        scaler_type = getattr(self.feature_config, 'scaler_type', 'StandardScaler')
+        if use_scaler:
+            if scaler_type == 'StandardScaler':
+                return make_pipeline(StandardScaler(), rf)
+            # Fallback: still scale with StandardScaler if unknown type
+            return make_pipeline(StandardScaler(), rf)
+        return rf
+
+    def get_estimator(self) -> BaseEstimator:
+        """Public accessor to a fresh estimator for evaluation (e.g., cross_val_predict)."""
+        return self._build_estimator()
     
     def train(self, features: np.ndarray, labels: np.ndarray) -> BaseEstimator:
         """
@@ -110,12 +146,8 @@ class RandomForestTrainer(BaseModelTrainer):
             # Shuffle data for better training
             features_shuffled, labels_shuffled = shuffle(features, labels, random_state=220)
             
-            # Create and train model
-            self.trained_model = RandomForestClassifier(
-                n_estimators=self.n_estimators,
-                random_state=self.random_state,
-                **self.additional_params
-            )
+            # Create and train model (with scaler if enabled)
+            self.trained_model = self._build_estimator()
             
             self.trained_model.fit(features_shuffled, labels_shuffled)
             
@@ -158,11 +190,7 @@ class RandomForestTrainer(BaseModelTrainer):
             features_shuffled, labels_shuffled = shuffle(features, labels, random_state=220)
             
             # Create model for CV
-            model = RandomForestClassifier(
-                n_estimators=self.n_estimators,
-                random_state=self.random_state,
-                **self.additional_params
-            )
+            model = self._build_estimator()
             
             # Perform cross-validation
             cv_scores = cross_val_score(
@@ -358,7 +386,7 @@ class ModelFactory:
         """
         trainer_type = trainer_type.lower()
         
-        if trainer_type == 'random_forest':
+        if trainer_type in ('random_forest', 'randomforest', 'rf'):
             return RandomForestTrainer(logger, progress_tracker, **kwargs)
         elif trainer_type == 'svm':
             return SVMTrainer(logger, progress_tracker, **kwargs)

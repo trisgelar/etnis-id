@@ -10,7 +10,7 @@ import numpy as np
 import cv2
 from abc import ABC
 from typing import Dict, Any
-from skimage.feature import graycomatrix, graycoprops
+from skimage.feature import graycomatrix, graycoprops, local_binary_pattern, hog
 from skimage.measure import shannon_entropy
 from .interfaces import IFeatureExtractor, ILogger, IProgressTracker
 from .config import get_feature_config
@@ -56,21 +56,28 @@ class GLCFeatureExtractor(BaseFeatureExtractor):
         # Get configuration
         config = get_feature_config()
         
-        # Use configuration values if not provided
-        self.distances = distances or config.glc_distances
-        self.levels = levels or config.glc_levels
+        # Use configuration values if not provided and ensure numeric types
+        raw_distances = distances if distances is not None else config.glc_distances
+        # Convert to integers when provided as strings
+        self.distances = [int(d) for d in raw_distances]
+        self.levels = int(levels) if levels is not None else int(config.glc_levels)
         
         # Convert angles from degrees to radians if needed
         if angles is None:
             angles = config.glc_angles
         
-        # Convert degrees to radians if angles are in degrees
+        # Convert degrees to radians if angles are in degrees; coerce from strings if needed
         self.angles = []
         for angle in angles:
-            if angle <= 2*np.pi:  # Assume radians if <= 2π
-                self.angles.append(angle)
-            else:  # Convert degrees to radians
-                self.angles.append(np.radians(angle))
+            try:
+                numeric_angle = float(angle)
+            except (TypeError, ValueError):
+                # Fallback: skip invalid items
+                continue
+            if numeric_angle <= 2 * np.pi:  # Assume radians if <= 2π
+                self.angles.append(numeric_angle)
+            else:
+                self.angles.append(np.radians(numeric_angle))
         
         self.feature_info = {
             'type': 'GLCM',
@@ -79,7 +86,7 @@ class GLCFeatureExtractor(BaseFeatureExtractor):
             'angles': self.angles,
             'levels': self.levels,
             'num_angles': len(self.angles),
-            'haralick_features': ['contrast', 'homogeneity', 'correlation', 'ASM']
+            'haralick_features': ['contrast', 'homogeneity', 'correlation', 'energy']
         }
     
     def extract_features(self, images: np.ndarray) -> np.ndarray:
@@ -143,18 +150,20 @@ class GLCFeatureExtractor(BaseFeatureExtractor):
                 normed=True
             )
             
-            # Extract Haralick features
-            properties = ['contrast', 'homogeneity', 'correlation', 'ASM']
+            # Extract Haralick features (matching notebook: energy instead of ASM)
+            properties = ['contrast', 'homogeneity', 'correlation', 'energy']
             haralick_features = []
             
             for prop in properties:
                 feature_values = graycoprops(glcm, prop).ravel()
                 haralick_features.extend(feature_values)
             
-            # Extract entropy for each angle
+            # Extract entropy for each angle (average across distances)
             entropy_features = []
             for j in range(len(self.angles)):
-                entropy_val = shannon_entropy(glcm[:, :, 0, j])
+                # Average GLCM across distances for angle j
+                P_avg = np.mean(glcm[:, :, :, j], axis=2)
+                entropy_val = shannon_entropy(P_avg)
                 entropy_features.append(entropy_val)
             
             # Combine all features
@@ -189,9 +198,10 @@ class ColorHistogramFeatureExtractor(BaseFeatureExtractor):
         # Get configuration
         config = get_feature_config()
         
-        # Use configuration values if not provided
-        self.bins = bins or config.color_bins
-        self.channels = channels or config.color_channels
+        # Use configuration values if not provided and ensure numeric types
+        self.bins = int(bins) if bins is not None else int(config.color_bins)
+        raw_channels = channels if channels is not None else config.color_channels
+        self.channels = [int(c) for c in raw_channels]
         
         self.feature_info = {
             'type': 'ColorHistogram',
@@ -253,6 +263,9 @@ class ColorHistogramFeatureExtractor(BaseFeatureExtractor):
             # Extract histogram for each specified channel
             for channel in self.channels:
                 hist = cv2.calcHist([img], [channel], None, [self.bins], [0, 256])
+                # Normalize histogram to sum to 1 (L1), matching notebook scaling
+                if hist.sum() > 0:
+                    hist = hist / hist.sum()
                 features.extend(hist.flatten())
             
             return np.array(features)
@@ -314,8 +327,8 @@ class CombinedFeatureExtractor:
                 data_key = extractor._get_preprocessed_data()
             else:
                 # Default mapping based on extractor type
-                if 'GLCM' in extractor_name:
-                    data_key = 'glcm'
+                if 'GLCM' in extractor_name or 'LBP' in extractor_name:
+                    data_key = 'glcm'  # Both GLCM and LBP need grayscale images
                 elif 'Color' in extractor_name:
                     data_key = 'color'
                 else:
@@ -356,3 +369,92 @@ class CombinedFeatureExtractor:
             'total_features': total_features,
             'extractors': extractor_info
         }
+
+
+class LBPFeatureExtractor(BaseFeatureExtractor):
+    """Local Binary Pattern (LBP) Feature Extractor"""
+    
+    def __init__(self, logger: ILogger, progress_tracker: IProgressTracker = None,
+                 P: int = 8, R: float = 1.0, method: str = 'uniform', bins: int = None):
+        super().__init__(logger, progress_tracker)
+        # For 'uniform', histogram length is P + 2
+        self.P = int(P)
+        self.R = float(R)
+        self.method = method
+        self.bins = int(bins) if bins is not None else (self.P + 2)
+        self.feature_info = {
+            'type': 'LBP',
+            'description': 'Local Binary Pattern histogram features',
+            'P': self.P,
+            'R': self.R,
+            'method': self.method,
+            'bins': self.bins,
+            'feature_dimension': self.bins
+        }
+    
+    def extract_features(self, images: np.ndarray) -> np.ndarray:
+        self.logger.info("Extracting LBP features...")
+        if self.progress_tracker:
+            self.progress_tracker.start_task("LBP Feature Extraction", len(images))
+        features = []
+        for i, img in enumerate(images):
+            # Expect grayscale images (H, W)
+            lbp = local_binary_pattern(img, self.P, self.R, method=self.method)
+            hist, _ = np.histogram(lbp.ravel(), bins=self.bins, range=(0, self.bins), density=True)
+            features.append(hist.astype(np.float32))
+            if self.progress_tracker:
+                self.progress_tracker.update_progress(i + 1)
+        if self.progress_tracker:
+            self.progress_tracker.complete_task()
+        result = np.vstack(features)
+        self.feature_info.update({
+            'extracted_count': len(result),
+            'input_shape': images.shape,
+            'output_shape': result.shape
+        })
+        return result
+
+
+class HOGFeatureExtractor(BaseFeatureExtractor):
+    """Histogram of Oriented Gradients (HOG) Feature Extractor"""
+    
+    def __init__(self, logger: ILogger, progress_tracker: IProgressTracker = None,
+                 pixels_per_cell: tuple = (8, 8), cells_per_block: tuple = (2, 2), orientations: int = 9):
+        super().__init__(logger, progress_tracker)
+        self.pixels_per_cell = tuple(pixels_per_cell)
+        self.cells_per_block = tuple(cells_per_block)
+        self.orientations = int(orientations)
+        self.feature_info = {
+            'type': 'HOG',
+            'description': 'Histogram of Oriented Gradients features',
+            'pixels_per_cell': self.pixels_per_cell,
+            'cells_per_block': self.cells_per_block,
+            'orientations': self.orientations
+        }
+    
+    def extract_features(self, images: np.ndarray) -> np.ndarray:
+        self.logger.info("Extracting HOG features...")
+        if self.progress_tracker:
+            self.progress_tracker.start_task("HOG Feature Extraction", len(images))
+        features = []
+        for i, img in enumerate(images):
+            # Expect grayscale images (H, W)
+            feat = hog(img, orientations=self.orientations,
+                       pixels_per_cell=self.pixels_per_cell,
+                       cells_per_block=self.cells_per_block,
+                       block_norm='L2-Hys', feature_vector=True)
+            features.append(feat.astype(np.float32))
+            if self.progress_tracker:
+                self.progress_tracker.update_progress(i + 1)
+        if self.progress_tracker:
+            self.progress_tracker.complete_task()
+        result = np.vstack(features)
+        # Record feature dimension after first extraction
+        if result.size > 0:
+            self.feature_info.update({'feature_dimension': result.shape[1]})
+        self.feature_info.update({
+            'extracted_count': len(result),
+            'input_shape': images.shape,
+            'output_shape': result.shape
+        })
+        return result

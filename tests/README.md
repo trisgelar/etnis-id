@@ -1,37 +1,41 @@
 # Test Suite
 
-This folder contains a tidy, pipeline-based test organization to keep the project maintainable and easy to execute.
+Pipeline-based, organized tests for maintainability and speed.
 
-Structure
+## Structure
 
-- unit/: fast tests for small, isolated units (pure functions/classes)
-- integration/: tests that exercise multiple modules together using small in-memory or tiny on-disk data
-- smoke/: very quick end-to-end sanity checks that run on tiny samples
-- test_runner.py: discover and run all tests
+- unit/: fast tests for focused functions/classes (e.g., feature extractors)
+- cv/: cross-validation and feature-pipeline tests (subset of real data)
+- config/: dotenv-backed configuration system tests
+- solid/: SOLID training system tests
+- visualization/: plotting/analysis checks (may generate images under logs/)
+- smoke/: quick environment/dataset presence checks
+- helpers/: shared utilities for tests
+- legacy/: archived helper scripts kept for reference (not part of CI)
 
-How to run
+## How to run (Windows)
 
-From the project root on Windows (ensuring the venv is active):
+- Install pytest (first time only):
+```
+cmd /c "env\Scripts\activate.bat && pip install pytest"
+```
 
+- All tests:
 ```
 cmd /c "env\Scripts\activate.bat && python -m pytest -q"
 ```
 
-Run by group:
-
+- By suite:
 ```
-# unit only
 cmd /c "env\Scripts\activate.bat && pytest -q tests/unit"
-
-# integration only
-cmd /c "env\Scripts\activate.bat && pytest -q tests/integration"
-
-# smoke only
+cmd /c "env\Scripts\activate.bat && pytest -q tests/cv"
+cmd /c "env\Scripts\activate.bat && pytest -q tests/config"
+cmd /c "env\Scripts\activate.bat && pytest -q tests/solid"
+cmd /c "env\Scripts\activate.bat && pytest -q tests/visualization"
 cmd /c "env\Scripts\activate.bat && pytest -q tests/smoke"
 ```
 
-Notes
-
-- Tests use a small subset of the dataset at `dataset/dataset_periorbital`. If not present, some integration/smoke tests will skip.
-- Configuration is loaded via `.env` through `ml_training.core.config` where relevant.
-- Keep unit tests fast (<1s each) and deterministic.
+## Notes
+- Integration-style tests in `tests/cv` use a small subset of `dataset/dataset_periorbital`. If the dataset is missing, tests are skipped.
+- Visualization tests may write figures into `logs/`.
+- Prefer adding unit tests for new logic and one integration test per pipeline feature.

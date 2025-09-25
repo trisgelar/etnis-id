@@ -9,32 +9,37 @@ import sys
 import os
 from typing import Dict, Any
 
-# Add ml_training core module to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'ml_training', 'core'))
+# Add project root to Python path
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
-from ml_training.core.utils import TrainingConfig, TrainingLogger, ProgressTracker
+from ml_training.core.utils import TrainingLogger, ProgressTracker
 from ml_training.core.training_pipeline import PipelineFactory
 
 
-def create_test_config() -> TrainingConfig:
-    """Create test configuration for your dataset"""
-    config_dict = {
-        # Use your actual dataset path
-        'dataset_path': '../dataset/dataset_periorbital',
-        'model_output_path': '../model_ml/test_solid_model.pkl',
-        'model_type': 'random_forest',
-        'cv_folds': 3,  # Reduced for faster testing
-        'random_state': 220,
-        'n_estimators': 50,  # Reduced for faster testing
-        'image_size': (400, 200),
-        'glcm_distances': [1],
-        'glcm_angles': [0, 3.14159/4, 3.14159/2, 3*3.14159/4],  # 0, 45, 90, 135 degrees
-        'glcm_levels': 256,
-        'color_bins': 16,
-        'color_channels': [1, 2],  # S and V channels for HSV
-        'log_file': 'test_solid_training.log'
+def create_test_config() -> Dict[str, Any]:
+    """Create custom_config sections for the pipeline (uses new config system)"""
+    return {
+        'model': {
+            'model_type': 'RandomForest',
+            'n_estimators': 50,
+            'random_state': 220
+        },
+        'cross_validation': {
+            'n_folds': 3
+        },
+        'feature_extraction': {
+            'glc_distances': [1],
+            'glc_angles': [0, 45, 90, 135],
+            'glc_levels': 256,
+            'color_bins': 16,
+            'color_channels': [1, 2],
+        },
+        'training': {
+            'random_seed': 220
+        }
     }
-    return TrainingConfig(config_dict)
 
 
 def test_individual_components():
@@ -58,17 +63,13 @@ def test_individual_components():
         progress_tracker.complete_task()
         print("SUCCESS: Progress Tracker working correctly")
         
-        # Test 3: Configuration
+        # Test 3: Configuration (custom_config dict for new system)
         print("\n3. Testing Configuration...")
         config = create_test_config()
-        if config.validate():
-            print("SUCCESS: Configuration valid")
-            print(f"   Dataset path: {config.get('dataset_path')}")
-            print(f"   Model type: {config.get('model_type')}")
-            print(f"   CV folds: {config.get('cv_folds')}")
-        else:
-            print("ERROR: Configuration invalid")
-            return False
+        print("SUCCESS: Configuration prepared (custom_config dict)")
+        print(f"   Dataset path: {config.get('dataset_path', '../dataset/dataset_periorbital')}")
+        print(f"   Model type: {config.get('model', {}).get('model_type', 'RandomForest')}")
+        print(f"   CV folds: {config.get('cross_validation', {}).get('n_folds', 3)}")
         
         # Test 4: Data Loader
         print("\n4. Testing Data Loader...")
@@ -77,7 +78,7 @@ def test_individual_components():
         data_loader = EthnicityDataLoader(logger)
         
         # Check if dataset exists
-        dataset_path = config.get('dataset_path')
+        dataset_path = os.path.join(PROJECT_ROOT, 'dataset', 'dataset_periorbital')
         if not os.path.exists(dataset_path):
             print(f"ERROR: Dataset path not found: {dataset_path}")
             return False
@@ -111,20 +112,20 @@ def test_training_pipeline():
     
     try:
         # Create configuration
-        config = create_test_config()
+        custom_config = create_test_config()
         
         # Create logger and progress tracker
-        logger = TrainingLogger('test_pipeline', config.get('log_file'))
+        logger = TrainingLogger('test_pipeline')
         progress_tracker = ProgressTracker(logger)
         
         # Create training pipeline
         print("Creating training pipeline...")
-        pipeline = PipelineFactory.create_pipeline(config, logger, progress_tracker)
+        pipeline = PipelineFactory.create_pipeline(logger, progress_tracker, custom_config=custom_config)
         print("SUCCESS: Pipeline created successfully")
         
-        # Get paths
-        data_path = config.get('dataset_path')
-        output_path = config.get('model_output_path')
+        # Get paths (absolute from project root)
+        data_path = os.path.join(PROJECT_ROOT, 'dataset', 'dataset_periorbital')
+        output_path = os.path.join(PROJECT_ROOT, 'model_ml', 'test_solid_model.pkl')
         
         # Ensure output directory exists
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -132,9 +133,9 @@ def test_training_pipeline():
         print(f"\nStarting training with:")
         print(f"   Dataset: {data_path}")
         print(f"   Output: {output_path}")
-        print(f"   Model type: {config.get('model_type')}")
-        print(f"   CV folds: {config.get('cv_folds')}")
-        print(f"   N estimators: {config.get('n_estimators')}")
+        print(f"   Model type: RandomForest")
+        print(f"   CV folds: 3")
+        print(f"   N estimators: 50")
         
         # Run the pipeline
         results = pipeline.run_pipeline(data_path, output_path)
